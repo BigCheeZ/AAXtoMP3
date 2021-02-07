@@ -562,10 +562,10 @@ do
           log "_____________________________________________"
           ffmpeg -loglevel verbose \
             -nostats \
-            -ss "${chapter_start%?}" \
-            -to "${chapter_end}" \
             -i "${output_file}" \
             -i "${cover_file}" \
+            -ss "${chapter_start%?}" \
+            -to "${chapter_end}" \
             -map 0:0 \
             -map 1:0 \
             -acodec "${codec}" ${id3_version_param} \
