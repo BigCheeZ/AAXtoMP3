@@ -559,7 +559,7 @@ do
           # This extracts based on time stamps start and end.
           log "Splitting chapter ${chapternum}/${chaptercount} start:${chapter_start%?}(s) end:${chapter_end}(s)"
           log "VERBOSE FFMPEG START"
-          log"_____________________________________________"
+          log "_____________________________________________"
           ffmpeg -loglevel verbose \
             -nostats \
             -ss "${chapter_start%?}" \
@@ -579,7 +579,7 @@ do
             -map_chapters -1 \
             -f ${container} \
             "${chapter_file}"
-          log"_____________________________________________"
+          log "_____________________________________________"
           log "VERBOSE FFMPEG STOP"
           # -----
           # OK lets get what need for the next chapter in the Playlist m3u file.
