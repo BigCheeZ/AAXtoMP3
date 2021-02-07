@@ -462,7 +462,8 @@ do
     # This is the main work horse command.  This is the primary transcoder.
     # This is the primary transcode. All the heavy lifting is here.
     debug 'ffmpeg -loglevel error -stats -activation_bytes "${auth_code}" -i "${aax_file}" -vn -codec:a "${codec}" -ab ${bitrate} -map_metadata -1 -metadata title="${title}" -metadata artist="${artist}" -metadata album_artist="${album_artist}" -metadata album="${album}" -metadata date="${album_date}" -metadata track="1/1" -metadata genre="${genre}" -metadata copyright="${copyright}" "${output_file}"'
-    </dev/null ffmpeg -loglevel error \
+    log "FFMPEG VERBOSE MAIN START"
+    ffmpeg -loglevel verbose \
       -stats \
       -activation_bytes "${auth_code}" \
       -i "${aax_file}" \
@@ -484,6 +485,7 @@ do
       -metadata publisher="${publisher}" \
       -f ${container} \
       "${output_file}"
+    log "FFMPEG VERBOSE MAIN STOP"
 
     log "Created ${output_file}."
     # -----
@@ -492,7 +494,7 @@ do
   cover_file="${output_directory}/cover.jpg"
   if [ "${continue}" == "0" ]; then
     log "Extracting cover into ${cover_file}..."
-    </dev/null ffmpeg -loglevel error -activation_bytes "${auth_code}" -i "${aax_file}" -an -codec:v copy "${cover_file}"
+    ffmpeg -loglevel error -activation_bytes "${auth_code}" -i "${aax_file}" -an -codec:v copy "${cover_file}"
   fi
   # -----
   # OK now spit the file if that's what you want.
@@ -556,7 +558,9 @@ do
           # Extract chapter by time stamps start and finish of chapter.
           # This extracts based on time stamps start and end.
           log "Splitting chapter ${chapternum}/${chaptercount} start:${chapter_start%?}(s) end:${chapter_end}(s)"
-          </dev/null ffmpeg -loglevel quiet \
+          log "VERBOSE FFMPEG START"
+          log"_____________________________________________"
+          ffmpeg -loglevel verbose \
             -nostats \
             -ss "${chapter_start%?}" \
             -to "${chapter_end}" \
@@ -575,6 +579,8 @@ do
             -map_chapters -1 \
             -f ${container} \
             "${chapter_file}"
+          log"_____________________________________________"
+          log "VERBOSE FFMPEG STOP"
           # -----
           # OK lets get what need for the next chapter in the Playlist m3u file.
           # Playlist creation.
