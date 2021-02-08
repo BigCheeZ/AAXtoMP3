@@ -463,7 +463,7 @@ do
     # This is the primary transcode. All the heavy lifting is here.
     debug 'ffmpeg -loglevel error -stats -activation_bytes "${auth_code}" -i "${aax_file}" -vn -codec:a "${codec}" -ab ${bitrate} -map_metadata -1 -metadata title="${title}" -metadata artist="${artist}" -metadata album_artist="${album_artist}" -metadata album="${album}" -metadata date="${album_date}" -metadata track="1/1" -metadata genre="${genre}" -metadata copyright="${copyright}" "${output_file}"'
     </dev/null ffmpeg -loglevel error \
-      -stats \
+      -nostats \
       -activation_bytes "${auth_code}" \
       -i "${aax_file}" \
       -vn \
@@ -541,7 +541,7 @@ do
         # Chapter names are used in a few place.
         chapter_title="${title}-$(printf %0${#chaptercount}d $chapternum) ${chapter}"
         chapter_file="${output_directory}/${chapter_title}.${extension}"
-
+        duration=$(echo "${chapter_end} - ${chapter_start%?}" | bc)
         # the ID3 tags must only be specified for *.mp3 files,
         # the other container formats come with their own
         # tagging mechanisms.
@@ -551,7 +551,7 @@ do
         fi
 
         # Big Long chapter debug
-        debug_vars "Chapter Variables:" cover_file chapter_start chapter_end id3_version_param chapternum chapter_title chapter_file
+        debug_vars "Chapter Variables:" cover_file chapter_start chapter_end duration id3_version_param chapternum chapter_title chapter_file
         if [ "$((${continueAt} > ${chapternum}))" = "0" ]; then
           # Extract chapter by time stamps start and finish of chapter.
           # This extracts based on time stamps start and end.
@@ -579,7 +579,6 @@ do
           # -----
           # OK lets get what need for the next chapter in the Playlist m3u file.
           # Playlist creation.
-          duration=$(echo "${chapter_end} - ${chapter_start%?}" | bc)
           echo "#EXTINF:${duration%.*},${title} - ${chapter}" >>  "${playlist_file}"
           echo "${chapter_title}.${extension}" >> "${playlist_file}"
         fi
