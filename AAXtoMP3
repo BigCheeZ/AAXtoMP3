@@ -786,7 +786,29 @@ do
       fi
     fi
     if [[ ${container} == "mp4" && $(type -P mp4chaps) ]]; then
-      ffprobe -i "${aax_file}" -print_format csv -show_chapters 2>/dev/null | awk -F "," '{printf "CHAPTER%02d=%02d:%02d:%02.3f\nCHAPTER%02dNAME=%s\n", NR, $5/60/60, $5/60%60, $5%60, NR, $8}' > "${output_directory}/${title}.chapters.txt"
+      # Either get chapter info from aax file or from JSON extra chapter file
+      if [[ "${audibleCli}" != "1" ]]; then
+        # Extract chapter info from aax file
+        ffprobe -i "${aax_file}" -print_format csv -show_chapters 2>/dev/null | awk -F "," '{printf "CHAPTER%02d=%02d:%02d:%02.3f\nCHAPTER%02dNAME=%s\n", NR, $5/60/60, $5/60%60, $5%60, NR, $8}' > "${output_directory}/${title}.chapters.txt"
+      else
+        # Use JSON chapter information from audible-cli
+        export chap_num=0
+        # Get total number of chapters
+        chap_total=$(jq '.content_metadata.chapter_info.chapters | length' ${extra_chapter_file})
+        # For each chapter record time offset and title name in Nero format. eg:
+        # CHAPTER0=00:00:0.000
+        # CHAPTER0NAME=Opening Credits
+        # CHAPTER1=00:00:6.780
+        # CHAPTER1NAME=Chapter I
+        while [ ${chap_num} -ne ${chap_total} ]; do
+          start_offset_ms=$(jq -r '.content_metadata.chapter_info.chapters[$ENV.chap_num | tonumber].start_offset_ms' ${extra_chapter_file})
+          chapter_title="$(jq -r '.content_metadata.chapter_info.chapters[$ENV.chap_num | tonumber].title' ${extra_chapter_file})"
+          echo "${chap_num}, ${start_offset_ms}" | awk -F "," '{printf "CHAPTER%d=%02d:%02d:%02.3f\n", $1, $2/1000/60/60, $2/1000/60%60, $2/1000%60}' >> "${output_directory}/${title}.chapters.txt"
+          echo "${chap_num}" | awk '{printf "CHAPTER%dNAME=", $1}' >> "${output_directory}/${title}.chapters.txt"
+          jq -r '.content_metadata.chapter_info.chapters[$ENV.chap_num | tonumber].title' ${extra_chapter_file} >> "${output_directory}/${title}.chapters.txt"
+          chap_num=$((chap_num + 1))
+        done
+      fi
       mp4chaps -i "${output_file}"
     fi
   fi
